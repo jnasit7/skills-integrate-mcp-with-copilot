@@ -5,19 +5,34 @@ A super simple FastAPI application that allows students to view and sign up
 for extracurricular activities at Mergington High School.
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Form
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, JSONResponse
 import os
 from pathlib import Path
+import json
 
 app = FastAPI(title="Mergington High School API",
               description="API for viewing and signing up for extracurricular activities")
+
+# Add session middleware
+from starlette.middleware.sessions import SessionMiddleware
+app.add_middleware(SessionMiddleware, secret_key="super-secret-key")
 
 # Mount the static files directory
 current_dir = Path(__file__).parent
 app.mount("/static", StaticFiles(directory=os.path.join(Path(__file__).parent,
           "static")), name="static")
+
+# Load teachers data
+with open(current_dir / "teachers.json", "r") as f:
+    teachers_data = json.load(f)
+teachers = teachers_data["teachers"]
+
+# Load users data
+with open(current_dir / "users.json", "r") as f:
+    users_data = json.load(f)
+users = users_data["users"]
 
 # In-memory activity database
 activities = {
@@ -83,14 +98,58 @@ def root():
     return RedirectResponse(url="/static/index.html")
 
 
+@app.post("/login")
+def login(request: Request, username: str = Form(...), password: str = Form(...)):
+    if username in teachers and teachers[username] == password:
+        request.session["user"] = username
+        request.session["role"] = "admin"
+        return {"message": "Logged in as admin"}
+    elif username in users and users[username] == password:
+        request.session["user"] = username
+        request.session["role"] = "student"
+        return {"message": "Logged in as student"}
+    else:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+
+@app.post("/logout")
+def logout(request: Request):
+    request.session.clear()
+    return {"message": "Logged out"}
+
+
+@app.post("/register")
+def register(email: str = Form(...), password: str = Form(...)):
+    if email in users:
+        raise HTTPException(status_code=400, detail="User already exists")
+    users[email] = password
+    # Save to file
+    with open(current_dir / "users.json", "w") as f:
+        json.dump({"users": users}, f)
+    return {"message": "Registered successfully"}
+
+
+@app.get("/auth-status")
+def auth_status(request: Request):
+    user = request.session.get("user")
+    role = request.session.get("role")
+    return {"user": user, "role": role}
+
+
 @app.get("/activities")
 def get_activities():
     return activities
 
 
 @app.post("/activities/{activity_name}/signup")
-def signup_for_activity(activity_name: str, email: str):
+def signup_for_activity(activity_name: str, request: Request):
     """Sign up a student for an activity"""
+    # Check if student logged in
+    if request.session.get("role") != "student":
+        raise HTTPException(status_code=403, detail="Student login required")
+
+    email = request.session["user"]
+
     # Validate activity exists
     if activity_name not in activities:
         raise HTTPException(status_code=404, detail="Activity not found")
@@ -111,8 +170,12 @@ def signup_for_activity(activity_name: str, email: str):
 
 
 @app.delete("/activities/{activity_name}/unregister")
-def unregister_from_activity(activity_name: str, email: str):
+def unregister_from_activity(activity_name: str, email: str, request: Request):
     """Unregister a student from an activity"""
+    # Check if admin
+    if request.session.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+
     # Validate activity exists
     if activity_name not in activities:
         raise HTTPException(status_code=404, detail="Activity not found")
