@@ -22,10 +22,46 @@ header {
   background-color: #1a237e;
   color: white;
   border-radius: 5px;
+  position: relative;
 }
 
 header h1 {
   margin-bottom: 10px;
+}
+
+#auth-section {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+#auth-section form {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+#auth-section input {
+  padding: 5px;
+  border: none;
+  border-radius: 3px;
+}
+
+#auth-section button {
+  padding: 5px 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+#auth-section button:hover {
+  background-color: #45a049;
+}
+
+.hidden {
+  display: none;
 }
 
 main {

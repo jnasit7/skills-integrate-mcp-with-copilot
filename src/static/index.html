@@ -10,6 +10,42 @@
     <header>
       <h1>Mergington High School</h1>
       <h2>Extracurricular Activities</h2>
+      <div id="auth-section">
+        <div id="login-form" class="hidden">
+          <form id="admin-login">
+            <input type="text" id="username" placeholder="Username" required />
+            <input type="password" id="password" placeholder="Password" required />
+            <button type="submit">Login</button>
+          </form>
+        </div>
+        <div id="admin-panel" class="hidden">
+          <span id="admin-greeting"></span>
+          <button id="logout-btn">Logout</button>
+        </div>
+        <button id="login-toggle">Admin Login</button>
+        <div id="student-auth">
+          <div id="student-login-form" class="hidden">
+            <form id="student-login">
+              <input type="email" id="student-email" placeholder="Email" required />
+              <input type="password" id="student-password" placeholder="Password" required />
+              <button type="submit">Login</button>
+            </form>
+          </div>
+          <div id="student-register-form" class="hidden">
+            <form id="student-register">
+              <input type="email" id="student-reg-email" placeholder="Email" required />
+              <input type="password" id="student-reg-password" placeholder="Password" required />
+              <button type="submit">Register</button>
+            </form>
+          </div>
+          <div id="student-panel" class="hidden">
+            <span id="student-greeting"></span>
+            <button id="student-logout-btn">Logout</button>
+          </div>
+          <button id="student-login-toggle">Student Login</button>
+          <button id="student-register-toggle">Register</button>
+        </div>
+      </div>
     </header>
 
     <main>
@@ -21,13 +57,9 @@
         </div>
       </section>
 
-      <section id="signup-container">
+      <section id="signup-container" class="hidden">
         <h3>Sign Up for an Activity</h3>
         <form id="signup-form">
-          <div class="form-group">
-            <label for="email">Student Email:</label>
-            <input type="email" id="email" required placeholder="your-email@mergington.edu" />
-          </div>
           <div class="form-group">
             <label for="activity">Select Activity:</label>
             <select id="activity" required>
